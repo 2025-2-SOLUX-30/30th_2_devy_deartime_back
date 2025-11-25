@@ -1,0 +1,64 @@
+HELP.md
+.gradle
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+bin/
+!**/src/main/**/bin/
+!**/src/test/**/bin/
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+out/
+!**/src/main/**/out/
+!**/src/test/**/out/
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+### VS Code ###
+.vscode/
+
+
+### OS Keyfiles (맥/윈도우 찌꺼기 파일 방지) ###
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+Thumbs.db
+Desktop.ini
+
+### Logs (로그 파일이 깃 올라가기 방지용) ###
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+### Java Crash Logs (자바 죽었을 때 생기는 에러 파일) ###
+hs_err_pid*
+
+### Security & Local Configs  ###
+# 혹시 나중에 혼자 테스트하려고 만들 비밀 설정 파일들
+application-secret.yml
+application-local.yml
+application-dev.yml
+secrets.yml
+.env
