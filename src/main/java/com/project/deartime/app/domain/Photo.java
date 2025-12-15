@@ -35,4 +35,8 @@ public class Photo extends BaseTimeEntity {
     // N:M 관계 (AlbumPhotos 중간 테이블을 통해 앨범 목록 관리)
     @OneToMany(mappedBy = "photo", cascade = CascadeType.ALL)
     private Set<AlbumPhoto> photoAlbums = new HashSet<>();
+
+    public void updateCaption(String caption) {
+        this.caption = caption;
+    }
 }

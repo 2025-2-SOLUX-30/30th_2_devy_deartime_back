@@ -1,15 +1,15 @@
 package com.project.deartime.app.domain;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
 @Table(name = "album_photos")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @IdClass(AlbumPhotoId.class)
+@Builder
+@AllArgsConstructor
 public class AlbumPhoto extends BaseTimeEntity {
 
     @Id
