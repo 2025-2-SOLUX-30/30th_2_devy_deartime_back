@@ -35,12 +35,23 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authorizeHttpRequests(auth -> auth
+                        // 인증 없이 접근 가능한 경로
                         .requestMatchers(
                                 "/api/auth/**",
-                                "/api/users/signup",
                                 "/login/oauth2/code/**",
                                 "/oauth2/**"
                         ).permitAll()
+                        // 회원가입은 임시 토큰으로 접근
+                        .requestMatchers("/api/users/signup").permitAll()
+                        // 인증이 필요한 경로
+                        .requestMatchers(
+                                "/api/users/me",
+                                "/api/friends/**",
+                                "/api/letters/**",
+                                "/api/timecapsules/**",
+                                "/api/photos/**",
+                                "/api/albums/**"
+                        ).authenticated()
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2
@@ -49,7 +60,7 @@ public class SecurityConfig {
                         )
                         .successHandler(googleOAuth2SuccessHandler)
                 )
-                // JWT 필터 추가
+                // JWT 필터를 UsernamePasswordAuthenticationFilter 앞에 추가
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
