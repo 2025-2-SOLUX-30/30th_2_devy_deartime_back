@@ -4,6 +4,8 @@ import com.project.deartime.app.auth.dto.SignUpRequest;
 import com.project.deartime.app.auth.dto.UpdateProfileRequest;
 import com.project.deartime.app.auth.repository.UserRepository;
 import com.project.deartime.app.domain.User;
+import com.project.deartime.global.exception.CoreApiException;
+import com.project.deartime.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,14 +18,13 @@ public class UserService {
     private final UserRepository userRepository;
 
     public User signUp(String providerId, String email, SignUpRequest request) {
-
         System.out.println("=== 회원가입 시작 ===");
         System.out.println("providerId: " + providerId);
         System.out.println("email: " + email);
         System.out.println("nickname: " + request.getNickname());
 
         if (userRepository.existsByNickname(request.getNickname())) {
-            throw new IllegalArgumentException("이미 사용 중인 닉네임입니다.");
+            throw new CoreApiException(ErrorCode.DUPLICATE_NICKNAME);
         }
 
         User user = User.builder()
@@ -45,19 +46,19 @@ public class UserService {
     @Transactional(readOnly = true)
     public User getUserById(Long userId) {
         return userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
+                .orElseThrow(() -> new CoreApiException(ErrorCode.USER_NOT_FOUND));
     }
 
     public User updateProfile(Long userId, UpdateProfileRequest request) {
         System.out.println("=== 프로필 업데이트 시작 ===");
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
+                .orElseThrow(() -> new CoreApiException(ErrorCode.USER_NOT_FOUND));
 
         // 닉네임 변경 시 중복 체크 (자기 자신은 제외)
         if (!user.getNickname().equals(request.getNickname())
                 && userRepository.existsByNickname(request.getNickname())) {
-            throw new IllegalArgumentException("이미 사용 중인 닉네임입니다.");
+            throw new CoreApiException(ErrorCode.DUPLICATE_NICKNAME);
         }
 
         // 기존 completeSignUp 메소드 활용

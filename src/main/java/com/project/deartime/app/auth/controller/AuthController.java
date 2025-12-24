@@ -1,5 +1,7 @@
 package com.project.deartime.app.auth.controller;
 
+import com.project.deartime.global.dto.ApiResponseTemplete;
+import com.project.deartime.global.exception.SuccessCode;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -10,9 +12,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -31,15 +30,10 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<?> logout() {
+    public ResponseEntity<ApiResponseTemplete<Void>> logout() {
         // 인증 정보 제거
         SecurityContextHolder.clearContext();
 
-        return ResponseEntity.ok(
-                Map.of(
-                        "status", 200,
-                        "message", "로그아웃 성공"
-                )
-        );
+        return ApiResponseTemplete.success(SuccessCode.LOGOUT_SUCCESS, null);
     }
 }

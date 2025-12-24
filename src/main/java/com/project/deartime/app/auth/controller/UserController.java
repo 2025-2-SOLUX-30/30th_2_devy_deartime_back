@@ -4,6 +4,9 @@ import com.project.deartime.app.auth.Service.UserService;
 import com.project.deartime.app.auth.dto.SignUpRequest;
 import com.project.deartime.app.auth.dto.UpdateProfileRequest;
 import com.project.deartime.app.domain.User;
+import com.project.deartime.global.dto.ApiResponseTemplete;
+import com.project.deartime.global.exception.InvalidTokenException;
+import com.project.deartime.global.exception.SuccessCode;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +26,7 @@ public class UserController {
     private final JwtTokenProvider jwtTokenProvider;
 
     @PostMapping("/signup")
-    public ResponseEntity<Map<String, Object>> signUp(
+    public ResponseEntity<ApiResponseTemplete<Map<String, Object>>> signUp(
             @RequestHeader("Authorization") String authHeader,
             @RequestBody @Valid SignUpRequest request,
             HttpServletResponse response
@@ -31,10 +34,7 @@ public class UserController {
         String tempToken = authHeader.replace("Bearer ", "");
 
         if (!jwtTokenProvider.validateToken(tempToken)) {
-            Map<String, Object> errorResponse = new HashMap<>();
-            errorResponse.put("status", 401);
-            errorResponse.put("message", "유효하지 않은 토큰입니다.");
-            return ResponseEntity.status(401).body(errorResponse);
+            throw new InvalidTokenException("유효하지 않은 토큰입니다.");
         }
 
         String providerId = jwtTokenProvider.getProviderId(tempToken);
@@ -52,11 +52,9 @@ public class UserController {
         response.addHeader("Authorization", "Bearer " + accessToken);
         response.addHeader("Refresh-Token", refreshToken);
 
-        Map<String, Object> responseBody = new HashMap<>();
-        responseBody.put("status", 200);
-        responseBody.put("message", "회원가입 성공");
-        responseBody.put("accessToken", accessToken);
-        responseBody.put("refreshToken", refreshToken);
+        Map<String, Object> responseData = new HashMap<>();
+        responseData.put("accessToken", accessToken);
+        responseData.put("refreshToken", refreshToken);
 
         Map<String, Object> userData = new HashMap<>();
         userData.put("userId", user.getId());
@@ -66,14 +64,13 @@ public class UserController {
         userData.put("bio", user.getBio());
         userData.put("profileImageUrl", user.getProfileImageUrl());
 
-        responseBody.put("user", userData);
+        responseData.put("user", userData);
 
-        return ResponseEntity.ok(responseBody);
+        return ApiResponseTemplete.success(SuccessCode.SIGNUP_SUCCESS, responseData);
     }
 
-    // 내 정보 조회 엔드포인트 추가
     @GetMapping("/me")
-    public ResponseEntity<Map<String, Object>> getMyInfo(
+    public ResponseEntity<ApiResponseTemplete<Map<String, Object>>> getMyInfo(
             @AuthenticationPrincipal String userId
     ) {
         System.out.println("=== 내 정보 조회 ===");
@@ -81,10 +78,6 @@ public class UserController {
 
         User user = userService.getUserById(Long.parseLong(userId));
 
-        Map<String, Object> responseBody = new HashMap<>();
-        responseBody.put("status", 200);
-        responseBody.put("message", "조회 성공");
-
         Map<String, Object> userData = new HashMap<>();
         userData.put("userId", user.getId());
         userData.put("email", user.getEmail());
@@ -93,14 +86,11 @@ public class UserController {
         userData.put("bio", user.getBio());
         userData.put("profileImageUrl", user.getProfileImageUrl());
 
-        responseBody.put("user", userData);
-
-        return ResponseEntity.ok(responseBody);
+        return ApiResponseTemplete.success(SuccessCode.USER_INFO_RETRIEVED, userData);
     }
 
-    //내 정보 수정
     @PutMapping("/me")
-    public ResponseEntity<Map<String, Object>> updateMyProfile(
+    public ResponseEntity<ApiResponseTemplete<Map<String, Object>>> updateMyProfile(
             @AuthenticationPrincipal String userId,
             @RequestBody @Valid UpdateProfileRequest request
     ) {
@@ -111,10 +101,6 @@ public class UserController {
 
         User updatedUser = userService.updateProfile(Long.parseLong(userId), request);
 
-        Map<String, Object> responseBody = new HashMap<>();
-        responseBody.put("status", 200);
-        responseBody.put("message", "프로필 업데이트 성공");
-
         Map<String, Object> userData = new HashMap<>();
         userData.put("userId", updatedUser.getId());
         userData.put("email", updatedUser.getEmail());
@@ -123,8 +109,6 @@ public class UserController {
         userData.put("bio", updatedUser.getBio());
         userData.put("profileImageUrl", updatedUser.getProfileImageUrl());
 
-        responseBody.put("user", userData);
-
-        return ResponseEntity.ok(responseBody);
+        return ApiResponseTemplete.success(SuccessCode.PROFILE_UPDATE_SUCCESS, userData);
     }
 }
