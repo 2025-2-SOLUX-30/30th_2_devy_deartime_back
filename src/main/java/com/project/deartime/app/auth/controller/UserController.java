@@ -2,6 +2,7 @@ package com.project.deartime.app.auth.controller;
 
 import com.project.deartime.app.auth.Service.UserService;
 import com.project.deartime.app.auth.dto.SignUpRequest;
+import com.project.deartime.app.auth.dto.UpdateProfileRequest;
 import com.project.deartime.app.domain.User;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -91,6 +92,36 @@ public class UserController {
         userData.put("birthDate", user.getBirthDate());
         userData.put("bio", user.getBio());
         userData.put("profileImageUrl", user.getProfileImageUrl());
+
+        responseBody.put("user", userData);
+
+        return ResponseEntity.ok(responseBody);
+    }
+
+    //내 정보 수정
+    @PutMapping("/me")
+    public ResponseEntity<Map<String, Object>> updateMyProfile(
+            @AuthenticationPrincipal String userId,
+            @RequestBody @Valid UpdateProfileRequest request
+    ) {
+        System.out.println("=== 프로필 업데이트 ===");
+        System.out.println("userId: " + userId);
+        System.out.println("nickname: " + request.getNickname());
+        System.out.println("birthDate: " + request.getBirthDate());
+
+        User updatedUser = userService.updateProfile(Long.parseLong(userId), request);
+
+        Map<String, Object> responseBody = new HashMap<>();
+        responseBody.put("status", 200);
+        responseBody.put("message", "프로필 업데이트 성공");
+
+        Map<String, Object> userData = new HashMap<>();
+        userData.put("userId", updatedUser.getId());
+        userData.put("email", updatedUser.getEmail());
+        userData.put("nickname", updatedUser.getNickname());
+        userData.put("birthDate", updatedUser.getBirthDate());
+        userData.put("bio", updatedUser.getBio());
+        userData.put("profileImageUrl", updatedUser.getProfileImageUrl());
 
         responseBody.put("user", userData);
 
