@@ -13,6 +13,7 @@ public enum SuccessCode {
     LOGOUT_SUCCESS(HttpStatus.OK, "로그아웃 성공"),
     LETTER_WRITE_INFO_SUCCESS(HttpStatus.OK, "편지 작성화면 정보를 불러왔습니다."),
     GET_LETTER_SUCCESS(HttpStatus.OK, "편지(들)을 불러오는데 성공했습니다"),
+    GET_LETTER_EMPTY(HttpStatus.OK, "편지가 없습니다."),
     CONVERSATION_EMPTY(HttpStatus.OK, "대화 기록이 없습니다."),
     CONVERSATION_FETCH_SUCCESS(HttpStatus.OK, "대화 기록을 불러오는데 성공했습니다."),
     PHOTO_FETCH_SUCCESS(HttpStatus.OK, "사진(들)을 불러오는데 성공했습니다."),
