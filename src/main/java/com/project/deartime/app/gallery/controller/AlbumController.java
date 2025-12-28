@@ -118,7 +118,7 @@ public class AlbumController {
     public ResponseEntity<ApiResponseTemplete<PageResponse<PhotoListResponse>>> getPhotosInAlbum(
             @AuthenticationPrincipal String userId,
             @PathVariable Long albumId,
-            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+            @PageableDefault(size = 20, sort = "takenAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
         Long myId = Long.parseLong(userId);
 

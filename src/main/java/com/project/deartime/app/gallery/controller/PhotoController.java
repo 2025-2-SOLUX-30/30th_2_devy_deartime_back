@@ -61,7 +61,7 @@ public class PhotoController {
     @GetMapping("/api/photos")
     public ResponseEntity<ApiResponseTemplete<PageResponse<PhotoListResponse>>> getPhotos(
             @AuthenticationPrincipal String userId,
-            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+            @PageableDefault(size = 20, sort = "takenAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
         Long myId = Long.parseLong(userId);
 
