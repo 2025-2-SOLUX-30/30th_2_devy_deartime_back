@@ -8,5 +8,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface PhotoRepository extends JpaRepository<Photo, Long> {
-    Page<Photo> findByUserIdOrderByCreatedAtDesc(Long userId, Pageable pageable);
+    Page<Photo> findByUserId(Long userId, Pageable pageable);
 }

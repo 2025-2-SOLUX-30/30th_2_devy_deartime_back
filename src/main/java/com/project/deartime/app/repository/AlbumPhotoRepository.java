@@ -29,4 +29,8 @@ public interface AlbumPhotoRepository extends JpaRepository<AlbumPhoto, AlbumPho
     List<AlbumPhoto> findByPhotoId(Long photoId);
 
     List<AlbumPhoto> findByAlbumId(Long albumId);
+
+    void deleteByAlbumId(Long albumId);
+
+    void deleteByPhotoId(Long photoId);
 }
