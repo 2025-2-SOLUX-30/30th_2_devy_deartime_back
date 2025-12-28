@@ -83,7 +83,7 @@ public class LetterService {
                 savedLetter.getSender().getNickname(),
                 savedLetter.getReceiver().getNickname(),
                 savedLetter.getCreatedAt(),
-                "편지가 성공적으로 예약 또는 발송되었습니다.",
+                "편지가 성공적으로 발송되었습니다.",
                 warningMessage
         );
     }
