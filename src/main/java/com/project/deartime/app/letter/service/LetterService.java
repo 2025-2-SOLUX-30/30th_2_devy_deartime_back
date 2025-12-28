@@ -45,10 +45,10 @@ public class LetterService {
 
     // 편지 전송 (POST /api/letters)
     @Transactional
-    public LetterSendResponse sendLetter(LetterSendRequest request) {
-        User sender = userRepository.findById(request.senderId())
+    public LetterSendResponse sendLetter(Long senderId, LetterSendRequest request) {
+        User sender = userRepository.findById(senderId)
                 .orElseThrow(() -> new CoreApiException(ErrorCode.NOT_FOUND_ID_EXCEPTION,
-                        "발신자 ID를 찾을 수 없습니다: " + request.senderId()));
+                        "발신자 ID를 찾을 수 없습니다: " + senderId));
         User receiver = userRepository.findById(request.receiverId())
                 .orElseThrow(() -> new CoreApiException(ErrorCode.NOT_FOUND_ID_EXCEPTION,
                         "수신자 ID를 찾을 수 없습니다: " + request.receiverId()));

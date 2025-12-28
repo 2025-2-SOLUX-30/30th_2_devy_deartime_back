@@ -33,16 +33,8 @@ public class LetterController {
             ) {
         Long senderId = Long.parseLong(userId);
 
-        LetterSendRequest finalRequest = new LetterSendRequest(
-                senderId,
-                request.receiverId(),
-                request.theme(),
-                request.title(),
-                request.content(),
-                request.sentAt()
-        );
-
-        LetterSendResponse response = letterService.sendLetter(finalRequest);
+        LetterSendResponse response =
+                letterService.sendLetter(senderId, request);
 
         return ApiResponseTemplete.success(SuccessCode.LETTER_SEND_SUCCESS, response);
     }

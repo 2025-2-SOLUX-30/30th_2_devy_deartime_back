@@ -7,8 +7,6 @@ import jakarta.validation.constraints.Size;
 import java.time.LocalDateTime;
 
 public record LetterSendRequest(
-        Long senderId,
-
         @NotNull(message = "수신자 ID는 필수입니다.")
         Long receiverId,
 
@@ -19,8 +17,6 @@ public record LetterSendRequest(
         String title,
 
         @NotBlank(message = "내용을 입력해주세요.")
-        String content,
-
-        LocalDateTime sentAt
+        String content
 ) {
 }
