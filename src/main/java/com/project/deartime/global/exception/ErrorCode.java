@@ -67,6 +67,7 @@ public enum ErrorCode {
     // 409 Conflict
     ALREADY_EXIST_STUDENT_EXCEPTION(HttpStatus.CONFLICT, "이미 회원가입이 완료된 사용자입니다."),
     ALREADY_EXIST_SUBJECT_EXCEPTION(HttpStatus.CONFLICT, "이미 존재하는 제목/리소스를 생성하려고 시도했습니다."),
+    HttpMediaTypeNotSupportedException(HttpStatus.CONFLICT, "지원하지 않는 미디어 타입입니다."),
 
     // 500 Internal Server Exception
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "알 수 없는 서버 에러가 발생했습니다."),
@@ -79,7 +80,7 @@ public enum ErrorCode {
     FAILED_UPLOAD_IMAGE_FILE_EXCEPTION(HttpStatus.SERVICE_UNAVAILABLE, "이미지를 업로드하는데 실패했습니다. "),
 
     // letter
-    LETTER_ACCESS_DENIED(HttpStatus.FORBIDDEN, "해당 편지에 접근하거나 조작할 권한이 없습니다."),
+    LETTER_ACCESS_DENIED(HttpStatus.FORBIDDEN, "해당 컨텐츠에 접근하거나 조작할 권한이 없습니다."),
     LETTER_NOT_FOUND(HttpStatus.NOT_FOUND, "요청한 편지를 찾을 수 없습니다."),
     LETTER_THEME_NOT_FOUND(HttpStatus.NOT_FOUND, "요청한 편지 테마를 찾을 수 없습니다.")
     ;

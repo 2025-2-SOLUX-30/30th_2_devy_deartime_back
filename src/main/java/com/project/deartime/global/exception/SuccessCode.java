@@ -34,6 +34,8 @@ public enum SuccessCode {
     PHOTO_DELETE_SUCCESS(HttpStatus.NO_CONTENT, "사진이 성공적으로 삭제 되었습니다."),
     ALBUM_DELETE_SUCCESS(HttpStatus.NO_CONTENT, "앨범이 성공적으로 삭제 되었습니다."),
     ALBUM_PHOTO_REMOVE_SUCCESS(HttpStatus.NO_CONTENT, "앨범에서 사진 제거가 성공적으로 완료되었습니다."),
+    FRIEND_REQUEST_SUCCESS(HttpStatus.CREATED, "친구 요청을 보냈습니다."),
+    SIGNUP_SUCCESS(HttpStatus.CREATED, "회원가입 성공"),
 
     // Server
     USER_INFO_RETRIEVED(HttpStatus.OK, "조회 성공"),
@@ -51,15 +53,6 @@ public enum SuccessCode {
     PROXY_SET_SUCCESS(HttpStatus.OK, "대리인을 설정했습니다."),
     PROXY_REMOVE_SUCCESS(HttpStatus.OK, "대리인을 해제했습니다."),
 
-    // 201 Created
-    FRIEND_REQUEST_SUCCESS(HttpStatus.CREATED, "친구 요청을 보냈습니다."),
-
-    // 201 Created
-    LETTER_SEND_SUCCESS(HttpStatus.CREATED, "편지 보내기를 완료하였습니다."),
-    SIGNUP_SUCCESS(HttpStatus.CREATED, "회원가입 성공"),
-
-    // 204 No Content
-    DELETE_LETTER_SUCCESS(HttpStatus.NO_CONTENT, "편지가 성공적으로 삭제 되었습니다.")
     ;
 
     private final HttpStatus httpStatus;
