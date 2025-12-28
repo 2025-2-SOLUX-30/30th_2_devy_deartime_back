@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -107,6 +108,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InvalidTokenException.class)
     public ResponseEntity<ApiResponseTemplete<String>> handleInvalidTokenException(InvalidTokenException e) {
         return ApiResponseTemplete.error(ErrorCode.UNAUTHORIZED_EXCEPTION, e.getMessage());
+    }
+
+    @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
+    public ResponseEntity<ApiResponseTemplete<String>> handleMediaTypeNotSupported(
+            HttpMediaTypeNotSupportedException e
+    ) {
+        return ApiResponseTemplete.error(ErrorCode.NOT_SUPPORT_MEDIA_TYPE, e.getMessage());
     }
 
     // 최종 Fallback 예외 처리
