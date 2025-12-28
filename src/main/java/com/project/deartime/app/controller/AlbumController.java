@@ -24,78 +24,111 @@ public class AlbumController {
 
     private final PhotoService photoService;
 
-    private Long getCurrentUserId(Long principalId) {
-        if (principalId == null) {
-            throw new RuntimeException("인증된 사용자 정보를 찾을 수 없습니다.");
-        }
-        return principalId;
-    }
-
-    // 앨범 생성 (POST /api/albums)
+    /**
+     * 앨범 생성
+     * POST /api/albums
+     */
     @PostMapping
     public ResponseEntity<ApiResponseTemplete<AlbumDetailResponse>> createAlbum(
-            @RequestBody @Valid AlbumCreateRequest request,
-            @AuthenticationPrincipal Long principalId
+            @AuthenticationPrincipal String userId,
+            @RequestBody @Valid AlbumCreateRequest request
     ) {
-        Long userId = getCurrentUserId(principalId);
-        AlbumDetailResponse response = photoService.createAlbum(userId, request);
+        Long myId = Long.parseLong(userId);
 
-        return ApiResponseTemplete.success(SuccessCode.ALBUM_CREATE_SUCCESS, response);
+        AlbumDetailResponse response =
+                photoService.createAlbum(myId, request);
+
+        return ApiResponseTemplete.success(
+                SuccessCode.ALBUM_CREATE_SUCCESS,
+                response
+        );
     }
 
-    // 앨범 목록 조회 (GET /api/albums)
+    /**
+     * 앨범 목록 조회
+     * GET /api/albums
+     */
     @GetMapping
     public ResponseEntity<ApiResponseTemplete<List<AlbumListResponse>>> getAlbums(
-            @AuthenticationPrincipal Long principalId
+            @AuthenticationPrincipal String userId
     ) {
-        Long userId = getCurrentUserId(principalId);
-        List<AlbumListResponse> response = photoService.getAlbums(userId);
+        Long myId = Long.parseLong(userId);
 
-        SuccessCode successCode = response.isEmpty() ?
-                SuccessCode.ALBUM_LIST_EMPTY : SuccessCode.ALBUM_LIST_FETCH_SUCCESS;
+        List<AlbumListResponse> response =
+                photoService.getAlbums(myId);
 
-        return ApiResponseTemplete.success(successCode, response);
+        SuccessCode successCode = response.isEmpty()
+                ? SuccessCode.ALBUM_LIST_EMPTY
+                : SuccessCode.ALBUM_LIST_FETCH_SUCCESS;
+
+        return ApiResponseTemplete.success(
+                successCode,
+                response
+        );
     }
 
-    // 앨범 이름 수정 (POST /api/albums/{albumId}/title)
+    /**
+     * 앨범 이름 수정
+     * POST /api/albums/{albumId}/title
+     */
     @PostMapping("/{albumId}/title")
     public ResponseEntity<ApiResponseTemplete<AlbumDetailResponse>> updateAlbumTitle(
+            @AuthenticationPrincipal String userId,
             @PathVariable Long albumId,
-            @RequestBody @Valid AlbumTitleUpdateRequest request,
-            @AuthenticationPrincipal Long principalId
+            @RequestBody @Valid AlbumTitleUpdateRequest request
     ) {
-        Long userId = getCurrentUserId(principalId);
-        AlbumDetailResponse response = photoService.updateAlbumTitle(userId, albumId, request);
+        Long myId = Long.parseLong(userId);
 
-        return ApiResponseTemplete.success(SuccessCode.ALBUM_TITLE_UPDATE_SUCCESS, response);
+        AlbumDetailResponse response =
+                photoService.updateAlbumTitle(myId, albumId, request);
+
+        return ApiResponseTemplete.success(
+                SuccessCode.ALBUM_TITLE_UPDATE_SUCCESS,
+                response
+        );
     }
 
-    // 앨범 삭제 (DELETE /api/albums/{albumId})
+    /**
+     * 앨범 삭제
+     * DELETE /api/albums/{albumId}
+     */
     @DeleteMapping("/{albumId}")
     public ResponseEntity<ApiResponseTemplete<Void>> deleteAlbum(
-            @PathVariable Long albumId,
-            @RequestBody @Valid AlbumDeleteRequest request,
-            @AuthenticationPrincipal Long principalId
+            @AuthenticationPrincipal String userId,
+            @PathVariable Long albumId
     ) {
-        Long userId = getCurrentUserId(principalId);
-        photoService.deleteAlbum(userId, albumId, request);
+        Long myId = Long.parseLong(userId);
 
-        return ApiResponseTemplete.success(SuccessCode.ALBUM_DELETE_SUCCESS, null);
+        photoService.deleteAlbum(myId, albumId);
+
+        return ApiResponseTemplete.success(
+                SuccessCode.ALBUM_DELETE_SUCCESS,
+                null
+        );
     }
 
-    // 앨범 내 사진 목록 조회 (GET /api/albums/{albumId}/photos)
+    /**
+     * 앨범 내 사진 목록 조회
+     * GET /api/albums/{albumId}/photos
+     */
     @GetMapping("/{albumId}/photos")
     public ResponseEntity<ApiResponseTemplete<PageResponse<PhotoListResponse>>> getPhotosInAlbum(
+            @AuthenticationPrincipal String userId,
             @PathVariable Long albumId,
-            @AuthenticationPrincipal Long principalId,
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
-        Long userId = getCurrentUserId(principalId);
-        PageResponse<PhotoListResponse> response = photoService.getPhotosInAlbum(userId, albumId, pageable);
+        Long myId = Long.parseLong(userId);
 
-        SuccessCode successCode = response.totalElements() == 0 ?
-                SuccessCode.ALBUM_PHOTOS_EMPTY : SuccessCode.ALBUM_PHOTOS_FETCH_SUCCESS;
+        PageResponse<PhotoListResponse> response =
+                photoService.getPhotosInAlbum(myId, albumId, pageable);
 
-        return ApiResponseTemplete.success(successCode, response);
+        SuccessCode successCode = response.totalElements() == 0
+                ? SuccessCode.ALBUM_PHOTOS_EMPTY
+                : SuccessCode.ALBUM_PHOTOS_FETCH_SUCCESS;
+
+        return ApiResponseTemplete.success(
+                successCode,
+                response
+        );
     }
 }
