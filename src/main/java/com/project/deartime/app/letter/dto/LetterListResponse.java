@@ -18,7 +18,7 @@ public record LetterListResponse(
     public static LetterListResponse fromEntity(Letter letter, boolean isBookmarked) {
         String themeCode = letter.getTheme() != null ? letter.getTheme().getCode() : null;
         String fullContent = letter.getContent();
-        String summary = (fullContent.length() > 50)
+        String summary = (fullContent.length() >= 50)
                 ? fullContent.substring(0, 50) + "..."
                 : fullContent;
 
