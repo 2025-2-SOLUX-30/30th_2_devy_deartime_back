@@ -40,6 +40,55 @@ public class User extends BaseTimeEntity {
     @Column(name = "bio", length = 500)
     private String bio;
 
+    /* =========================
+       회원가입 완료 여부 판단
+     ========================= */
+    public boolean isRegistered() {
+        return nickname != null;
+    }
+
+    /* =========================
+       회원가입 정보 업데이트
+     ========================= */
+    public void completeSignUp(
+            String nickname,
+            LocalDate birthDate,
+            String bio,
+            String profileImageUrl
+    ) {
+        this.nickname = nickname;
+        this.birthDate = birthDate;
+        this.bio = bio;
+        this.profileImageUrl = profileImageUrl;
+    }
+
+    /* =========================
+   프로필 수정 (닉네임 등)
+ ========================= */
+    public void updateProfile(
+            String nickname,
+            LocalDate birthDate,
+            String bio,
+            String profileImageUrl
+    ) {
+        if (nickname != null) {
+            this.nickname = nickname;
+        }
+
+        if (birthDate != null) {
+            this.birthDate = birthDate;
+        }
+
+        if (bio != null) {
+            this.bio = bio;
+        }
+
+        if (profileImageUrl != null) {
+            this.profileImageUrl = profileImageUrl;
+        }
+    }
+
+
     // 1. Letters: User 1명이 보낸 편지 N개
     @OneToMany(mappedBy = "sender", cascade = CascadeType.ALL)
     private List<Letter> sentLetters = new ArrayList<>();

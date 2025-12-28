@@ -25,7 +25,7 @@ spring:
           google:
             client-id: ${GOOGLE_CLIENT_ID}
             client-secret: ${GOOGLE_CLIENT_SECRET}
-            redirect-uri: ${APP_BASE_URL}/login/oauth2/code/google
+            redirect-uri: http://${APP_BASE_URL}/login/oauth2/code/google
             scope:
               - email
               - profile
@@ -36,6 +36,16 @@ spring:
             user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
             user-name-attribute: email
 
+  # Multipart 파일 업로드 설정 추가
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+jwt:
+  secret: ${JWT_SECRET}
+
+# AWS S3 설정 추가
 cloud:
   aws:
     credentials:
@@ -43,7 +53,7 @@ cloud:
       secret-key: ${AWS_SECRET_ACCESS_KEY}
     s3:
       bucket: ${AWS_S3_BUCKET_NAME}
-    stack.auto: false
     region:
       static: ap-northeast-2
+    stack:
       auto: false

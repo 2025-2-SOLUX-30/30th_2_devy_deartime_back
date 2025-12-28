@@ -31,6 +31,20 @@ public enum ErrorCode {
     DB_CONSTRAINT_VIOLATION_EXCEPTION(HttpStatus.BAD_REQUEST, "요청 값이 데이터베이스 제약 조건을 위반했습니다."),
     INVALID_INPUT_VALUE(HttpStatus.BAD_REQUEST, "유효하지 않은 입력 값입니다."),
     INVALID_JSON_FORMAT(HttpStatus.BAD_REQUEST,"요청 형식이 잘못되었습니다. 데이터 타입을 확인해주세요."),
+    DUPLICATE_NICKNAME(HttpStatus.BAD_REQUEST, "이미 사용 중인 닉네임입니다."),
+    INVALID_TOKEN(HttpStatus.BAD_REQUEST, "유효하지 않은 토큰입니다."),
+
+    // Friend 관련 400 에러
+    FRIEND_SELF_REQUEST(HttpStatus.BAD_REQUEST, "자기 자신에게 친구 요청을 보낼 수 없습니다."),
+    FRIEND_ALREADY_EXISTS(HttpStatus.BAD_REQUEST, "이미 친구 관계입니다."),
+    FRIEND_REQUEST_ALREADY_SENT(HttpStatus.BAD_REQUEST, "이미 친구 요청을 보냈습니다."),
+    FRIEND_USER_BLOCKED(HttpStatus.BAD_REQUEST, "차단된 사용자입니다."),
+    FRIEND_REQUEST_NOT_PENDING(HttpStatus.BAD_REQUEST, "대기 중인 친구 요청이 아닙니다."),
+    FRIEND_NOT_ACCEPTED(HttpStatus.BAD_REQUEST, "친구 관계가 아닌 사용자는 대리인으로 설정할 수 없습니다."),
+    PROXY_SELF_REQUEST(HttpStatus.BAD_REQUEST, "자기 자신을 대리인으로 설정할 수 없습니다."),
+    FRIEND_SELF_BLOCK(HttpStatus.BAD_REQUEST, "자기 자신을 차단할 수 없습니다."),
+    SEARCH_KEYWORD_EMPTY(HttpStatus.BAD_REQUEST, "검색어를 입력해주세요."),
+    INVALID_FRIEND_STATUS(HttpStatus.BAD_REQUEST, "유효하지 않은 상태값입니다."),
 
     // 401 Unauthorized
     UNAUTHORIZED_EXCEPTION(HttpStatus.UNAUTHORIZED, "인증되지 않은 사용자거나 인증과정에 오류가 있습니다. "),
@@ -44,6 +58,11 @@ public enum ErrorCode {
     // 404 NOT FOUND
     NOT_FOUND_ID_EXCEPTION(HttpStatus.NOT_FOUND, "찾을 수 없는 ID"),
     RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, "요청한 리소스를 찾을 수 없습니다."),
+    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 사용자입니다."),
+    FRIEND_NOT_FOUND(HttpStatus.NOT_FOUND, "친구를 찾을 수 없습니다."),
+    FRIEND_REQUEST_NOT_FOUND(HttpStatus.NOT_FOUND, "친구 요청을 찾을 수 없습니다."),
+    FRIEND_RELATIONSHIP_NOT_FOUND(HttpStatus.NOT_FOUND, "친구 관계를 찾을 수 없습니다."),
+    PROXY_NOT_FOUND(HttpStatus.NOT_FOUND, "대리인 관계를 찾을 수 없습니다."),
 
     // 409 Conflict
     ALREADY_EXIST_STUDENT_EXCEPTION(HttpStatus.CONFLICT, "이미 회원가입이 완료된 사용자입니다."),
@@ -62,8 +81,8 @@ public enum ErrorCode {
     // letter
     LETTER_ACCESS_DENIED(HttpStatus.FORBIDDEN, "해당 편지에 접근하거나 조작할 권한이 없습니다."),
     LETTER_NOT_FOUND(HttpStatus.NOT_FOUND, "요청한 편지를 찾을 수 없습니다."),
-    LETTER_THEME_NOT_FOUND(HttpStatus.NOT_FOUND, "요청한 편지 테마를 찾을 수 없습니다."),
-;
+    LETTER_THEME_NOT_FOUND(HttpStatus.NOT_FOUND, "요청한 편지 테마를 찾을 수 없습니다.")
+    ;
 
     private final HttpStatus httpStatus;
     private final String message;

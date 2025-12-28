@@ -28,4 +28,7 @@ public class Proxy {
 
     @Column(name = "expired_at")
     private LocalDateTime expiredAt;
+
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
 }
