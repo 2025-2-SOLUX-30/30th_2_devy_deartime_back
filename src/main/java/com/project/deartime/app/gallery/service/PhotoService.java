@@ -2,6 +2,7 @@ package com.project.deartime.app.gallery.service;
 
 import com.project.deartime.app.auth.repository.UserRepository;
 import com.project.deartime.app.domain.*;
+import com.project.deartime.app.gallery.ImageMetadataUtil;
 import com.project.deartime.app.gallery.dto.albums.*;
 import com.project.deartime.app.gallery.dto.photos.*;
 import com.project.deartime.app.gallery.repository.AlbumPhotoRepository;
@@ -21,6 +22,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -76,40 +79,47 @@ public class PhotoService {
                 continue;
             }
 
-            String imageUrl =
-                    s3Service.uploadFile(file, "photos/" + user.getId());
+            try{
+                byte[] fileBytes = file.getBytes();
+                LocalDateTime takenAt = ImageMetadataUtil.extractTakenAt(fileBytes, file.getOriginalFilename());
 
-            Photo photo = Photo.builder()
-                    .user(user)
-                    .imageUrl(imageUrl)
-                    .caption(request.caption())
-                    .takenAt(LocalDateTime.now())
-                    .build();
+                if (takenAt == null) {
+                    log.warn("사진 촬영 일시 메타데이터가 없습니다. 파일명: {}", file.getOriginalFilename());
+                    takenAt = LocalDateTime.now();
+                }
+                String imageUrl =
+                        s3Service.uploadFile(file, "photos/" + user.getId());
 
-            Photo savedPhoto = photoRepository.save(photo);
+                Photo photo = Photo.builder()
+                        .user(user)
+                        .imageUrl(imageUrl)
+                        .caption(request.caption())
+                        .takenAt(takenAt)
+                        .build();
 
-            if (targetAlbum != null) {
-                albumPhotoRepository.save(
-                        AlbumPhoto.builder()
-                                .album(targetAlbum)
-                                .photo(savedPhoto)
-                                .build()
+                Photo savedPhoto = photoRepository.save(photo);
+
+                if (targetAlbum != null) {
+                    albumPhotoRepository.save(
+                            AlbumPhoto.builder()
+                                    .album(targetAlbum)
+                                    .photo(savedPhoto)
+                                    .build()
+                    );
+                }
+
+                responses.add(
+                        new PhotoUploadResponse(
+                                savedPhoto.getId(),
+                                savedPhoto.getImageUrl(),
+                                savedPhoto.getCaption(),
+                                savedPhoto.getTakenAt(),
+                                "사진 업로드 및 저장 성공"
+                        )
                 );
+            } catch (IOException e){
+                log.error("파일 처리 중 오류 발생: {}", file.getOriginalFilename(), e);
             }
-
-            responses.add(
-                    new PhotoUploadResponse(
-                            savedPhoto.getId(),
-                            savedPhoto.getImageUrl(),
-                            savedPhoto.getCaption(),
-                            savedPhoto.getTakenAt(),
-                            "사진 업로드 및 저장 성공"
-                    )
-            );
-        }
-
-        if (responses.isEmpty()) {
-            throw new IllegalArgumentException("유효한 이미지 파일이 없습니다.");
         }
 
         return responses;
@@ -155,17 +165,33 @@ public class PhotoService {
             throw new AccessDeniedException("사진 삭제 권한이 없습니다.");
         }
 
-        // 앨범 커버로 쓰이는 경우 해제
+        // S3 삭제 먼저 시도
+        try {
+            s3Service.deleteFile(photo.getImageUrl());
+        } catch (CoreApiException e) {
+            log.error(
+                    "[PHOTO DELETE] S3 삭제 실패. photoId={}, userId={}",
+                    photoId,
+                    userId,
+                    e
+            );
+            throw e;
+        }
+
+        // 앨범 커버 해제
         albumRepository.clearCoverPhoto(photoId);
 
         // AlbumPhoto 관계 제거
         albumPhotoRepository.deleteByPhotoId(photoId);
 
-        // S3 삭제
-        s3Service.deleteFile(photo.getImageUrl());
-
         // Photo 삭제
         photoRepository.delete(photo);
+
+        log.info(
+                "[PHOTO DELETE] 사진 삭제 완료. photoId={}, userId={}",
+                photoId,
+                userId
+        );
     }
 
     /**
