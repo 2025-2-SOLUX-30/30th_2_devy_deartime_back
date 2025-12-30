@@ -1,0 +1,287 @@
+<!DO<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>알림 WebSocket STOMP 테스트</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        h1 { color: #333; }
+        h2 { color: #666; border-bottom: 2px solid #007bff; padding-bottom: 10px; }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+        .btn-connect { background-color: #28a745; color: white; }
+        .btn-connect:hover { background-color: #218838; }
+        .btn-disconnect { background-color: #dc3545; color: white; }
+        .btn-disconnect:hover { background-color: #c82333; }
+        .btn-subscribe { background-color: #007bff; color: white; }
+        .btn-subscribe:hover { background-color: #0056b3; }
+        .btn-clear { background-color: #6c757d; color: white; }
+        .btn-clear:hover { background-color: #545b62; }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        #status {
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+        .status-disconnected { background-color: #f8d7da; color: #721c24; }
+        .status-connecting { background-color: #fff3cd; color: #856404; }
+        .status-connected { background-color: #d4edda; color: #155724; }
+        #notifications {
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            height: 400px;
+            overflow-y: auto;
+        }
+        .notification-item {
+            background: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            border-left: 4px solid #007bff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .notification-item.error {
+            border-left-color: #dc3545;
+            background-color: #fff5f5;
+        }
+        .notification-item.system {
+            border-left-color: #6c757d;
+            background-color: #f8f9fa;
+        }
+        .notification-time {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 5px;
+        }
+        .notification-content {
+            color: #333;
+        }
+        pre {
+            background: #f4f4f4;
+            padding: 10px;
+            border-radius: 3px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔔 알림 WebSocket STOMP 테스트</h1>
+
+    <div class="container">
+        <h2>1. 연결 설정</h2>
+        <div class="input-group">
+            <label for="serverUrl">서버 URL:</label>
+            <input type="text" id="serverUrl" value="http://localhost:8080/ws-stomp" />
+        </div>
+        <div class="input-group">
+            <label for="jwtToken">JWT 토큰 (Bearer 제외):</label>
+            <input type="text" id="jwtToken" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." />
+        </div>
+        <div class="input-group">
+            <label for="userId">사용자 ID (알림을 받을 사용자):</label>
+            <input type="number" id="userId" value="2" />
+        </div>
+        <div id="status" class="status-disconnected">● 연결 안됨</div>
+        <button id="connectBtn" class="btn-connect" onclick="connect()">연결</button>
+        <button id="disconnectBtn" class="btn-disconnect" onclick="disconnect()" disabled>연결 해제</button>
+    </div>
+
+    <div class="container">
+        <h2>2. 구독 관리</h2>
+        <button id="subscribeBtn" class="btn-subscribe" onclick="subscribe()" disabled>알림 구독</button>
+        <span id="subscriptionStatus" style="margin-left: 10px; color: #666;">구독 안됨</span>
+    </div>
+
+    <div class="container">
+        <h2>3. 수신된 알림</h2>
+        <button class="btn-clear" onclick="clearNotifications()">알림 지우기</button>
+        <div id="notifications"></div>
+    </div>
+
+    <div class="container">
+        <h2>📋 사용 방법</h2>
+        <ol>
+            <li><strong>서버 실행:</strong> Spring Boot 애플리케이션을 먼저 실행하세요.</li>
+            <li><strong>JWT 토큰 입력:</strong> 로그인 후 발급받은 JWT 토큰을 입력하세요. (Bearer 제외)</li>
+            <li><strong>사용자 ID 입력:</strong> 알림을 받을 사용자의 ID를 입력하세요. (토큰의 사용자 ID와 일치해야 함)</li>
+            <li><strong>연결:</strong> "연결" 버튼을 클릭하여 WebSocket 연결을 수립합니다.</li>
+            <li><strong>구독:</strong> "알림 구독" 버튼을 클릭하여 알림 채널을 구독합니다.</li>
+            <li><strong>테스트:</strong> 다른 브라우저/탭에서 친구 요청, 편지 전송 등을 실행하면 이 페이지에서 실시간 알림을 받습니다.</li>
+        </ol>
+        <p><strong>💡 팁:</strong> notification-test.http 파일에서 REST API를 호출하여 알림을 트리거할 수 있습니다.</p>
+        <p><strong>⚠️ 주의:</strong> JWT 토큰이 없거나 유효하지 않으면 연결은 되지만 인증되지 않은 상태입니다.</p>
+    </div>
+
+    <script>
+        let stompClient = null;
+        let subscription = null;
+
+        function updateStatus(status, className) {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = status;
+            statusEl.className = className;
+        }
+
+        function addNotification(content, type = 'normal') {
+            const notificationsEl = document.getElementById('notifications');
+            const item = document.createElement('div');
+            item.className = `notification-item ${type}`;
+
+            const time = new Date().toLocaleTimeString('ko-KR');
+            item.innerHTML = `
+                <div class="notification-time">${time}</div>
+                <div class="notification-content">${content}</div>
+            `;
+
+            notificationsEl.insertBefore(item, notificationsEl.firstChild);
+        }
+
+        function connect() {
+            const serverUrl = document.getElementById('serverUrl').value;
+            const jwtToken = document.getElementById('jwtToken').value;
+
+            updateStatus('● 연결 중...', 'status-connecting');
+            addNotification(`서버에 연결 중: ${serverUrl}`, 'system');
+
+            const socket = new SockJS(serverUrl);
+            stompClient = Stomp.over(socket);
+
+            // 디버그 로그 활성화 (문제 확인용)
+            stompClient.debug = function(str) {
+                console.log('STOMP: ' + str);
+            };
+
+            // STOMP 연결 헤더 설정 (JWT 토큰 포함)
+            const headers = {};
+            if (jwtToken) {
+                headers['Authorization'] = 'Bearer ' + jwtToken;
+            }
+
+            stompClient.connect(headers,
+                function(frame) {
+                    console.log('Connected: ' + frame);
+                    updateStatus('● 연결됨', 'status-connected');
+                    addNotification('✅ WebSocket 연결 성공!', 'system');
+
+                    document.getElementById('connectBtn').disabled = true;
+                    document.getElementById('disconnectBtn').disabled = false;
+                    document.getElementById('subscribeBtn').disabled = false;
+                },
+                function(error) {
+                    console.error('Connection error: ', error);
+                    updateStatus('● 연결 실패', 'status-disconnected');
+                    addNotification(`❌ 연결 실패: ${error}`, 'error');
+
+                    document.getElementById('connectBtn').disabled = false;
+                    document.getElementById('disconnectBtn').disabled = true;
+                    document.getElementById('subscribeBtn').disabled = true;
+                }
+            );
+        }
+
+        function disconnect() {
+            if (stompClient !== null) {
+                stompClient.disconnect();
+                stompClient = null;
+                subscription = null;
+            }
+
+            updateStatus('● 연결 안됨', 'status-disconnected');
+            addNotification('🔌 연결이 해제되었습니다.', 'system');
+            document.getElementById('subscriptionStatus').textContent = '구독 안됨';
+
+            document.getElementById('connectBtn').disabled = false;
+            document.getElementById('disconnectBtn').disabled = true;
+            document.getElementById('subscribeBtn').disabled = true;
+        }
+
+        function subscribe() {
+            const userId = document.getElementById('userId').value;
+            const destination = `/sub/notifications/${userId}`;
+
+            if (subscription) {
+                subscription.unsubscribe();
+            }
+
+            subscription = stompClient.subscribe(destination, function(message) {
+                console.log('Received: ', message);
+
+                try {
+                    const notification = JSON.parse(message.body);
+                    const content = `
+                        <strong>🔔 새 알림!</strong><br>
+                        <strong>타입:</strong> ${notification.type || 'N/A'}<br>
+                        <strong>내용:</strong> ${notification.content || 'N/A'}<br>
+                        <strong>보낸 사람:</strong> ${notification.senderNickname || 'N/A'}<br>
+                        <pre>${JSON.stringify(notification, null, 2)}</pre>
+                    `;
+                    addNotification(content);
+                } catch (e) {
+                    addNotification(`📨 메시지 수신: ${message.body}`);
+                }
+            });
+
+            document.getElementById('subscriptionStatus').textContent = `✅ 구독 중: ${destination}`;
+            addNotification(`📡 구독 시작: ${destination}`, 'system');
+        }
+
+        function clearNotifications() {
+            document.getElementById('notifications').innerHTML = '';
+        }
+
+        // 페이지 닫을 때 연결 해제
+        window.onbeforeunload = function() {
+            if (stompClient !== null) {
+                stompClient.disconnect();
+            }
+        };
+    </script>
+</body>
+</html>
+

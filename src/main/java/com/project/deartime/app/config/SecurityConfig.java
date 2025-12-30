@@ -110,10 +110,13 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
+        /*
         configuration.setAllowedOrigins(Arrays.asList(
                 "http://localhost:3000",
                 "http://localhost:8080"
         ));
+        */
+        configuration.setAllowedOriginPatterns(Arrays.asList("*"));// 개발 환경에서는 모든 origin 허용 (file:// 포함)
 
         configuration.setAllowedMethods(Arrays.asList(
                 "GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"
