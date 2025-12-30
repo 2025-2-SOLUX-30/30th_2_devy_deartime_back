@@ -86,9 +86,14 @@ public class TimeCapsuleService {
 
         TimeCapsule savedCapsule = timeCapsuleRepository.save(capsule);
 
-        // 수신자에게 알림 발송
+        // 수신자에게 알림 발송 (캡슐 제목 포함)
         try {
-            notificationService.notifyCapsuleReceived(receiver, savedCapsule.getId(), senderUser.getNickname());
+            notificationService.notifyCapsuleReceived(
+                    receiver,
+                    savedCapsule.getId(),
+                    senderUser.getNickname(),
+                    savedCapsule.getTitle()
+            );
         } catch (Exception e) {
             log.error("[CAPSULE] 알림 발송 실패. capsuleId={}", savedCapsule.getId(), e);
         }
