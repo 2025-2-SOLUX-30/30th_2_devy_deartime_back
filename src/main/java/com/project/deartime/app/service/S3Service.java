@@ -14,6 +14,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Set;
 import java.util.UUID;
 
@@ -127,7 +131,8 @@ public class S3Service {
     }
 
     /**
-     * URL에서 파일명 추출
+     * URL에서 파일명(S3 Object Key) 추출
+     * Virtual Hosted-Style URL 지원: https://{bucket}.s3.{region}.amazonaws.com/{key}
      */
     private String extractFileNameFromUrl(String fileUrl) {
         if (fileUrl == null || fileUrl.isBlank()) {
@@ -135,16 +140,26 @@ public class S3Service {
             throw new CoreApiException(ErrorCode.INVALID_S3_FILE_URL);
         }
 
-        int bucketIndex = fileUrl.indexOf(bucket);
-        if (bucketIndex == -1) {
-            log.error(
-                    "[S3 URL] bucket not found in fileUrl. bucket={}, fileUrl={}",
-                    bucket,
-                    fileUrl
-            );
+        try {
+            URI uri = new URI(fileUrl);
+            String path = uri.getPath();
+
+            if (path == null || path.length() <= 1) {
+                log.error("[S3 URL] Invalid path in URL. fileUrl={}", fileUrl);
+                throw new CoreApiException(ErrorCode.INVALID_S3_FILE_URL);
+            }
+
+            // 맨 앞의 '/' 제거하여 S3 Object Key 추출
+            String key = path.startsWith("/") ? path.substring(1) : path;
+
+            // URL 디코딩 (한글 파일명 등 처리)
+            key = URLDecoder.decode(key, StandardCharsets.UTF_8);
+
+            log.debug("[S3 URL] Extracted key: {} from URL: {}", key, fileUrl);
+            return key;
+        } catch (URISyntaxException e) {
+            log.error("[S3 URL] Failed to parse URL. fileUrl={}", fileUrl, e);
             throw new CoreApiException(ErrorCode.INVALID_S3_FILE_URL);
         }
-
-        return fileUrl.substring(bucketIndex + bucket.length() + 1);
     }
 }

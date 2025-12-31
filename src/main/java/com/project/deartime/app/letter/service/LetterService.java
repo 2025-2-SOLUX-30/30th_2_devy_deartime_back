@@ -9,11 +9,13 @@ import com.project.deartime.app.letter.dto.LetterSendResponse;
 import com.project.deartime.app.letter.repository.LetterFavoriteRepository;
 import com.project.deartime.app.letter.repository.LetterRepository;
 import com.project.deartime.app.letter.repository.LetterThemeRepository;
+import com.project.deartime.app.notification.service.NotificationService;
 
 import com.project.deartime.global.dto.PageResponse;
 import com.project.deartime.global.exception.CoreApiException;
 import com.project.deartime.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
@@ -22,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -31,6 +34,7 @@ public class LetterService {
     private final UserRepository userRepository;
     private final LetterThemeRepository letterThemeRepository;
     private final LetterFavoriteRepository letterFavoriteRepository;
+    private final NotificationService notificationService;
 
     // 즐겨찾기 여부 확인
     private boolean isLetterBookmarked(Long userId, Long letterId) {
@@ -85,6 +89,18 @@ public class LetterService {
                 .build();
 
         Letter savedLetter = letterRepository.save(letter);
+
+        // 수신자에게 알림 발송
+        try {
+            notificationService.notifyLetterReceived(
+                    receiver,
+                    savedLetter.getId(),
+                    sender.getNickname(),
+                    savedLetter.getTitle()
+            );
+        } catch (Exception e) {
+            log.error("[LETTER] 알림 발송 실패. letterId={}", savedLetter.getId(), e);
+        }
 
         return new LetterSendResponse(
                 savedLetter.getId(),

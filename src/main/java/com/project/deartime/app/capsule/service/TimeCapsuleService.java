@@ -4,12 +4,11 @@ import com.project.deartime.app.capsule.dto.CapsuleResponse;
 import com.project.deartime.app.capsule.dto.CapsuleType;
 import com.project.deartime.app.capsule.dto.CreateCapsuleRequest;
 import com.project.deartime.app.capsule.repository.TimeCapsuleRepository;
-import com.project.deartime.app.domain.Friend;
 import com.project.deartime.app.domain.TimeCapsule;
 import com.project.deartime.app.domain.User;
 import com.project.deartime.app.friend.repository.FriendRepository;
 import com.project.deartime.app.auth.repository.UserRepository;
-import com.project.deartime.app.service.NotificationService;
+import com.project.deartime.app.notification.service.NotificationService;
 import com.project.deartime.app.service.S3Service;
 import com.project.deartime.global.exception.CoreApiException;
 import com.project.deartime.global.exception.ErrorCode;
@@ -26,7 +25,7 @@ import java.time.LocalDateTime;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional
+@Transactional(readOnly = true)
 public class TimeCapsuleService {
 
     private final TimeCapsuleRepository timeCapsuleRepository;
@@ -45,6 +44,7 @@ public class TimeCapsuleService {
      * @param imageFile 이미지 파일 (선택)
      * @return 생성된 캡슐 응답
      */
+    @Transactional
     public CapsuleResponse createCapsule(Long senderId, CreateCapsuleRequest request, MultipartFile imageFile, User senderUser) {
         // 받는 사람이 존재하는지 확인
         if (senderId.equals(request.getReceiverId())) {
@@ -72,30 +72,50 @@ public class TimeCapsuleService {
             imageUrl = s3Service.uploadFile(imageFile, CAPSULE_FOLDER);
         }
 
-        // 캡슐 생성
-        TimeCapsule capsule = TimeCapsule.builder()
-                .title(request.getTitle())
-                .content(request.getContent())
-                .theme(request.getTheme())
-                .imageUrl(imageUrl)
-                .openAt(request.getOpenAt())
-                .sender(senderUser)
-                .receiver(receiver)
-                .isNotified(false)
-                .build();
-
-        TimeCapsule savedCapsule = timeCapsuleRepository.save(capsule);
-
-        // 수신자에게 알림 발송
         try {
-            notificationService.notifyCapsuleReceived(receiver, savedCapsule.getId(), senderUser.getNickname());
+            // 캡슐 생성
+            TimeCapsule capsule = TimeCapsule.builder()
+                    .title(request.getTitle())
+                    .content(request.getContent())
+                    .theme(request.getTheme())
+                    .imageUrl(imageUrl)
+                    .openAt(request.getOpenAt())
+                    .sender(senderUser)
+                    .receiver(receiver)
+                    .isNotified(false)
+                    .build();
+
+            TimeCapsule savedCapsule = timeCapsuleRepository.save(capsule);
+
+            // 수신자에게 알림 발송 (캡슐 제목 포함)
+            try {
+                notificationService.notifyCapsuleReceived(
+                        receiver,
+                        savedCapsule.getId(),
+                        senderUser.getNickname(),
+                        savedCapsule.getTitle()
+                );
+            } catch (Exception e) {
+                log.error("[CAPSULE] 알림 발송 실패. capsuleId={}", savedCapsule.getId(), e);
+            }
+
+            log.info("[CAPSULE] 타임캡슐 생성. capsuleId={}, senderId={}", savedCapsule.getId(), senderId);
+
+            return CapsuleResponse.from(savedCapsule, true);
         } catch (Exception e) {
-            log.error("[CAPSULE] 알림 발송 실패. capsuleId={}", savedCapsule.getId(), e);
+            // DB 저장 실패 시 S3에 업로드된 이미지 삭제 시도
+            // 주의: S3 삭제도 실패할 경우 orphan 파일이 남을 수 있음 (별도 정리 작업 필요)
+            if (imageUrl != null) {
+                try {
+                    s3Service.deleteFile(imageUrl);
+                    log.info("[CAPSULE] S3 이미지 롤백 완료. imageUrl={}", imageUrl);
+                } catch (Exception s3Exception) {
+                    // S3 삭제 실패 시 경고 레벨로 로깅 (orphan 파일 발생)
+                    log.warn("[CAPSULE] S3 이미지 롤백 실패 - orphan 파일 발생 가능. imageUrl={}", imageUrl, s3Exception);
+                }
+            }
+            throw e;
         }
-
-        log.info("[CAPSULE] 타임캡슐 생성. capsuleId={}, senderId={}", savedCapsule.getId(), senderId);
-
-        return CapsuleResponse.from(savedCapsule, true);
     }
 
     /**
@@ -175,9 +195,9 @@ public class TimeCapsuleService {
             return true;
         }
 
-        // 받는 사람은 openAt 이후에만 접근 가능
+        // 받는 사람은 openAt 시간 이후(openAt 포함)에 접근 가능
         if (capsule.getReceiver().getId().equals(userId)) {
-            return LocalDateTime.now().isAfter(capsule.getOpenAt()) || LocalDateTime.now().equals(capsule.getOpenAt());
+            return !LocalDateTime.now().isBefore(capsule.getOpenAt());
         }
 
         return false;

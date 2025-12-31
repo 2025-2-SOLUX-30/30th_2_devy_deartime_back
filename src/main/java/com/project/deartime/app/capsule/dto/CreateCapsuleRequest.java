@@ -1,6 +1,5 @@
 package com.project.deartime.app.capsule.dto;
 
-import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -22,13 +21,13 @@ public class CreateCapsuleRequest {
     @NotBlank(message = "내용은 필수입니다.")
     private String content;
 
+
     private String theme;
 
     @NotNull(message = "받는 사람 ID는 필수입니다.")
     private Long receiverId;
 
     @NotNull(message = "개봉 일시는 필수입니다.")
-    @Future(message = "개봉 일시는 미래 시간이어야 합니다.")
     private LocalDateTime openAt;
 }
 

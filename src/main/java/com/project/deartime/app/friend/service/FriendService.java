@@ -9,9 +9,11 @@ import com.project.deartime.app.friend.dto.FriendSearchResponse;
 import com.project.deartime.app.friend.dto.ProxyResponseDto;
 import com.project.deartime.app.friend.repository.FriendRepository;
 import com.project.deartime.app.friend.repository.ProxyRepository;
+import com.project.deartime.app.notification.service.NotificationService;
 import com.project.deartime.global.exception.CoreApiException;
 import com.project.deartime.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -28,6 +31,7 @@ public class FriendService {
     private final UserRepository userRepository;
     private final FriendRepository friendRepository;
     private final ProxyRepository proxyRepository;
+    private final NotificationService notificationService;
 
     /**
      * 내 친구 목록 조회 (accepted 상태만)
@@ -144,6 +148,13 @@ public class FriendService {
 
         Friend savedFriend = friendRepository.save(newFriendRequest);
 
+        // 상대방에게 친구 요청 알림 발송
+        try {
+            notificationService.notifyFriendRequest(friend, user.getId(), user.getNickname());
+        } catch (Exception e) {
+            log.error("[FRIEND] 친구 요청 알림 발송 실패. userId={}, friendId={}", userId, friendId, e);
+        }
+
         return FriendResponseDto.from(savedFriend);
     }
 
@@ -175,6 +186,15 @@ public class FriendService {
                 .build();
 
         Friend savedFriend = friendRepository.save(acceptedFriend);
+
+        // 요청자(friendId)에게 친구 수락 알림 발송
+        try {
+            User currentUser = friendRequest.getFriend(); // 수락한 사람 (이미 조회된 엔티티)
+            User requester = friendRequest.getUser(); // 원래 요청을 보낸 사람
+            notificationService.notifyFriendAccept(requester, currentUser.getId(), currentUser.getNickname());
+        } catch (Exception e) {
+            log.error("[FRIEND] 친구 수락 알림 발송 실패. userId={}, friendId={}", userId, friendId, e);
+        }
 
         return FriendResponseDto.from(savedFriend);
     }

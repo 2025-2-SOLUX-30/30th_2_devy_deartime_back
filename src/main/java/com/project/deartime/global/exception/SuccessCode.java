@@ -61,6 +61,12 @@ public enum SuccessCode {
     CAPSULE_LIST_SUCCESS(HttpStatus.OK, "타임캡슐 목록 조회 성공"),
     CAPSULE_GET_SUCCESS(HttpStatus.OK, "타임캡슐 상세 조회 성공"),
 
+    // Notification 관련 200 OK
+    NOTIFICATION_LIST_SUCCESS(HttpStatus.OK, "알림 목록 조회 성공"),
+    NOTIFICATION_COUNT_SUCCESS(HttpStatus.OK, "읽지 않은 알림 개수 조회 성공"),
+    NOTIFICATION_READ_SUCCESS(HttpStatus.OK, "알림 읽음 처리 성공"),
+    NOTIFICATION_DELETE_SUCCESS(HttpStatus.OK, "알림 삭제 성공"),
+
     ;
 
     private final HttpStatus httpStatus;

@@ -1,5 +1,6 @@
 package com.project.deartime.app.domain;
 
+import com.project.deartime.app.notification.domain.NotificationType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -21,18 +22,30 @@ public class Notification extends BaseTimeEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false, length = 30)
-    private String type; // 알림 유형 (예: 'COMMENT', 'LIKE', 'FRIEND_REQUEST')
+    private NotificationType type;
 
-    @Column(name = "message", nullable = false, length = 255)
-    private String message;
+    @Column(name = "content", nullable = false, length = 255)
+    private String content; // 알림 메시지 (예: "{보낸이}님이 편지를 보냈습니다.")
+
+    @Column(name = "target_id")
+    private Long targetId; // 클릭 시 이동할 리소스의 ID (편지 ID, 타임캡슐 ID 등)
+
+    @Column(name = "content_title", length = 100)
+    private String contentTitle; // 관련 리소스의 제목 (편지 제목, 캡슐 제목 등)
+
+    @Column(name = "sender_nickname", length = 20)
+    private String senderNickname; // 알림을 발생시킨 유저의 닉네임
 
     @Column(name = "is_read", nullable = false)
+    @Builder.Default
     private Boolean isRead = false;
 
-    @Column(name = "related_resource_id")
-    private Long relatedResourceID; // 관련된 리소스 ID (예: Letter ID)
-
-    @Column(name = "related_resource_owner")
-    private Long relatedResourceOwner; // 관련된 리소스의 소유자 ID (Notification 테이블의 FK는 아님)
+    /**
+     * 알림 읽음 처리
+     */
+    public void markAsRead() {
+        this.isRead = true;
+    }
 }

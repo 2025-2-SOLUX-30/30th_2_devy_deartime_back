@@ -10,6 +10,7 @@ import com.project.deartime.global.dto.PageResponse;
 import com.project.deartime.global.exception.CoreApiException;
 import com.project.deartime.global.exception.ErrorCode;
 import com.project.deartime.global.exception.SuccessCode;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -18,15 +19,13 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import jakarta.validation.Valid;
-
 @Slf4j
 @RestController
-@RequestMapping("/api/capsules")
+@RequestMapping("/api/timecapsules")
 @RequiredArgsConstructor
 public class TimeCapsuleController {
 
@@ -38,23 +37,15 @@ public class TimeCapsuleController {
      */
     @PostMapping
     public ResponseEntity<ApiResponseTemplete<CapsuleResponse>> createCapsule(
-            @Valid @RequestPart(value = "request")
-            CreateCapsuleRequest request,
-            @RequestPart(value = "imageFile", required = false)
-            MultipartFile imageFile,
-            Authentication authentication) {
+            @Valid @RequestPart(value = "request") CreateCapsuleRequest request,
+            @RequestPart(value = "imageFile", required = false) MultipartFile imageFile,
+            @AuthenticationPrincipal String userId) {
 
-        Long userId;
-        try {
-            userId = Long.parseLong(authentication.getName());
-        } catch (NumberFormatException e) {
-            throw new CoreApiException(ErrorCode.INVALID_TOKEN);
-        }
-
-        var user = userRepository.findById(userId)
+        Long userIdLong = Long.parseLong(userId);
+        var user = userRepository.findById(userIdLong)
                 .orElseThrow(() -> new CoreApiException(ErrorCode.USER_NOT_FOUND));
 
-        CapsuleResponse response = timeCapsuleService.createCapsule(userId, request, imageFile, user);
+        CapsuleResponse response = timeCapsuleService.createCapsule(userIdLong, request, imageFile, user);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -71,20 +62,13 @@ public class TimeCapsuleController {
      */
     @GetMapping
     public ResponseEntity<ApiResponseTemplete<PageResponse<CapsuleResponse>>> getCapsules(
-            @RequestParam(required = false)
-            CapsuleType type,
-            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC)
-            Pageable pageable,
-            Authentication authentication) {
+            @RequestParam(required = false) CapsuleType type,
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
+            @AuthenticationPrincipal String userId) {
 
-        Long userId;
-        try {
-            userId = Long.parseLong(authentication.getName());
-        } catch (NumberFormatException e) {
-            throw new CoreApiException(ErrorCode.INVALID_TOKEN);
-        }
+        Long userIdLong = Long.parseLong(userId);
 
-        Page<CapsuleResponse> page = timeCapsuleService.getCapsulesByType(userId, type, pageable);
+        Page<CapsuleResponse> page = timeCapsuleService.getCapsulesByType(userIdLong, type, pageable);
         PageResponse<CapsuleResponse> pageResponse = PageResponse.from(page);
 
         return ResponseEntity
@@ -103,16 +87,11 @@ public class TimeCapsuleController {
     @GetMapping("/{capsuleId}")
     public ResponseEntity<ApiResponseTemplete<CapsuleResponse>> getCapsule(
             @PathVariable Long capsuleId,
-            Authentication authentication) {
+            @AuthenticationPrincipal String userId) {
 
-        Long userId;
-        try {
-            userId = Long.parseLong(authentication.getName());
-        } catch (NumberFormatException e) {
-            throw new CoreApiException(ErrorCode.INVALID_TOKEN);
-        }
+        Long userIdLong = Long.parseLong(userId);
 
-        CapsuleResponse response = timeCapsuleService.getCapsule(capsuleId, userId);
+        CapsuleResponse response = timeCapsuleService.getCapsule(capsuleId, userIdLong);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -124,4 +103,3 @@ public class TimeCapsuleController {
                         .build());
     }
 }
-

@@ -46,6 +46,7 @@ public class CapsuleResponse {
     private boolean canAccess;
 
     public static CapsuleResponse from(TimeCapsule capsule, boolean canAccess) {
+        // openAt 시간 이후(openAt 포함)인 경우 opened 상태
         boolean isOpened = !capsule.getOpenAt().isAfter(LocalDateTime.now());
 
         return CapsuleResponse.builder()

@@ -43,7 +43,8 @@ public class SecurityConfig {
                                 "/api/auth/google",
                                 "/api/users/signup",
                                 "/login/oauth2/code/**",
-                                "/oauth2/**"
+                                "/oauth2/**",
+                                "/ws-stomp/**"  // WebSocket 엔드포인트
                         ).permitAll()
                         .requestMatchers("/api/auth/logout").authenticated()
                         // 회원가입은 임시 토큰으로 접근
@@ -55,7 +56,8 @@ public class SecurityConfig {
                                 "/api/letters/**",
                                 "/api/timecapsules/**",
                                 "/api/photos/**",
-                                "/api/albums/**"
+                                "/api/albums/**",
+                                "/api/notifications/**"  // 알림 API
                         ).authenticated()
                         .anyRequest().authenticated()
                 )
@@ -108,10 +110,12 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        configuration.setAllowedOrigins(Arrays.asList(
+        // TODO: 프로덕션 환경에서는 반드시 실제 도메인으로 변경 필요
+        configuration.setAllowedOriginPatterns(Arrays.asList(
                 "http://localhost:3000",
                 "http://localhost:8080"
         ));
+        //원래는 configuration.setAllowedOriginPatterns(Arrays.asList("*"))가 개발용;
 
         configuration.setAllowedMethods(Arrays.asList(
                 "GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"
