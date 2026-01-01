@@ -8,6 +8,7 @@ spring:
     url: ${DB_URL}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
 
   jpa:
     hibernate:
@@ -54,10 +55,8 @@ cloud:
       bucket: ${AWS_S3_BUCKET_NAME}
     region:
       static: ap-northeast-2
-    stack:
-      auto: false
 
-# Actuator 설정 (Health Check용)
+# Actuator 설정 (Health Check)
 management:
   endpoints:
     web:
