@@ -16,7 +16,7 @@ ARG JAR_FILE=build/libs/deartime-0.0.1-SNAPSHOT.jar
 # ==========================================================
 # Step 2: 실행 이미지 단계 (Run Stage)
 # ==========================================================
-FROM openjdk:26-ea-slim-trixie
+FROM amazoncorretto:21
 
 ENV TZ=Asia/Seoul
 WORKDIR /app
