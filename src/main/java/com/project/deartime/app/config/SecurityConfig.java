@@ -44,7 +44,8 @@ public class SecurityConfig {
                                 "/api/users/signup",
                                 "/login/oauth2/code/**",
                                 "/oauth2/**",
-                                "/ws-stomp/**"  // WebSocket 엔드포인트
+                                "/ws-stomp/**",  // WebSocket 엔드포인트
+                                "/actuator/health"  // Health Check 엔드포인트
                         ).permitAll()
                         .requestMatchers("/api/auth/logout").authenticated()
                         // 회원가입은 임시 토큰으로 접근
@@ -115,11 +116,10 @@ public class SecurityConfig {
         configuration.setAllowedOriginPatterns(Arrays.asList(
                 "http://localhost:3000",      // 프론트 로컬 개발
                 "http://localhost:8080",      // 백엔드 로컬
-                "http://43.203.87.207:8080",  // 백엔드 배포
+                "http://43.203.87.207:8080"  // 백엔드 배포
                 // TODO: 프론트엔드 배포 주소 추가 (예시)
                 // "https://deartime.vercel.app",
                 // "https://your-frontend-domain.com"
-                "https://*.vercel.app"        // Vercel 프리뷰 배포 허용(개발용)
         ));
 
         configuration.setAllowedMethods(Arrays.asList(

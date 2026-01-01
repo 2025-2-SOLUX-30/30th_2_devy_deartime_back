@@ -56,3 +56,13 @@ cloud:
       static: ap-northeast-2
     stack:
       auto: false
+
+# Actuator 설정 (Health Check용)
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
